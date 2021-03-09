@@ -144,7 +144,7 @@ def music(msg):
             except Exception as e1:
                 pass
             raise e
-    
+
     if msg[:10] == 'music vol ':
         music_vol = int(msg[10:])
         runtype("音量已更改为：" + str(music_vol) + ' (' + str(round(music_vol/2.56)) + '%)')
