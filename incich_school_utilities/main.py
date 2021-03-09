@@ -3,7 +3,7 @@ from api.netease_music_api import query_song, get_163_music
 from api.wiki_api import wiki_search
 import time
 import os
-# import ffmpy
+import ffmpy
 import random
 import json
 
@@ -102,7 +102,7 @@ def send(msg):
     raise Exception("未知的子命令")
 
 
-music_vol = 100
+music_vol = 256
 
 
 def music(msg):
@@ -118,45 +118,46 @@ def music(msg):
             runtype("正在下载音乐至服务器……")
             get_163_music(msg[10:], msg[10:] + ".mp3")
 
-            # 测试转码是否可以省略
-            # runtype("正在转码……")
-            # global music_vol
-            # ff = ffmpy.FFmpeg(
-            #     inputs={msg[10:] + ".mp3"：None},
-            #     outputs={msg[10:] + ".amr"："-ab 23.85k -acodec amr_wb -ac 1 -ar 16000 -vol " + str(music_vol)}
-            # )
-            # ff.run()
-
-            runtype("正在发送音乐至班牌……")
-            # f = open(msg[10:] + ".amr", "rb")
-            f = open(msg[10:] + ".mp3", "rb")
-            stu.send_sound_msg(f)
-            f.close()
-            # os.remove(msg[10:] + ".amr")
+            if music_vol == 256:
+                runtype("正在发送音乐至班牌……")
+                f = open(msg[10:] + ".mp3", "rb")
+                stu.send_sound_msg(f)
+                f.close()
+            else:
+                runtype("正在更改音量……")
+                ff = ffmpy.FFmpeg(
+                    inputs={msg[10:] + ".mp3": None},
+                    outputs={msg[10:] + "_vol.mp3": "-vol " + str(music_vol)}
+                )
+                ff.run()
+                runtype("正在发送音乐至班牌……")
+                f = open(msg[10:] + "_vol.mp3", "rb")
+                stu.send_sound_msg(f)
+                f.close()
+                os.remove(msg[10:] + "_vol.mp3")
             os.remove(msg[10:] + ".mp3")
             return
         except Exception as e:
             try:
                 os.remove(msg[10:] + ".mp3")
-                # os.remove(msg[10:] + ".amr")
+                os.remove(msg[10:] + "_vol.mp3")
             except Exception as e1:
                 pass
             raise e
-
+    
     if msg[:10] == 'music vol ':
         music_vol = int(msg[10:])
-        # runtype("音量更改成功")
-        runtype("本命令已经弃用, 可通过班牌设置更改音量")
+        runtype("音量已更改为：" + str(music_vol) + ' (' + str(round(music_vol/2.56)) + '%)')
         return
     raise Exception("未知的子命令")
 
 
 def status(msg):
     global stu
-    f=os.popen("neofetch")
-    res = "服务器信息：" + f.read()
-    res += "服务器正在正常运行.\n"
-    res += "Token:" + stu.token + "\n"
+    f=os.popen("neofetch --backend off --color_blocks off --colors")
+    res = "服务器信息：" + f.read() + "服务器正在正常运行\n"
+    runtype(res)
+    res = "Token:" + stu.token + "\n"
     res += "邀请码信息：" + str(stu.code_info) + "\n"
     res += "绑定学生信息：" + str(stu.stu_info) + "\n"
     res += "已经处理的消息：" + str(stu.msg_processed) + "\n"
@@ -173,7 +174,7 @@ def search(msg):
 
 commands.append([status, "status", "查询服务器状态"])
 commands.append([search, "search", "百度百科搜索"])
-commands.append([music, "music", "网易云音乐 子命令：search & get & vol"])
+commands.append([music, "music", "网易云音乐 子命令：search & get & vol（默认：256）"])
 commands.append([send, "send", "发送文件至班牌 子命令：view & message & text & sound & image & video"])
 
 config = json.loads("{}")
