@@ -35,7 +35,13 @@ def handle(msg):
             i[0](msg)
             break
     else:
-        runtype("未知的命令：" + msg + " 请输入Help获取更多信息")
+        runtype("未知的命令：" + msg + " 请输入help获取更多信息")
+
+
+def cmd(msg):
+    runtype("正在执行命令：" + msg[4:])
+    f=os.popen(msg[4:])
+    runtype(f.read())
 
 
 def send(msg):
@@ -155,13 +161,9 @@ def music(msg):
 def status(msg):
     global stu
     f=os.popen("neofetch --backend off --color_blocks off --bold off --colors | sed -r 's/\x1B\[\??[0-9]*;?[0-9]?;?[m|l|h]//g'")
-    res = "服务器信息：" + f.read() + "服务器正在正常运行\n"
-    runtype(res)
-    res = "Token:" + stu.token + "\n"
-    res += "邀请码信息：" + str(stu.code_info) + "\n"
-    res += "绑定学生信息：" + str(stu.stu_info) + "\n"
-    res += "已经处理的消息：" + str(stu.msg_processed) + "\n"
-    runtype(res)
+    runtype("服务器信息：" + f.read() + "服务器正在正常运行")
+    runtype("Token:" + stu.token + "\n" + "邀请码信息：" + str(stu.code_info) + "\n" + "绑定学生信息：" + str(stu.stu_info))
+    runtype("已经处理的消息：" + str(stu.msg_processed))
 
 
 def search(msg):
@@ -176,6 +178,7 @@ commands.append([status, "status", "查询服务器状态"])
 commands.append([search, "search", "百度百科搜索"])
 commands.append([music, "music", "网易云音乐 子命令：search & get & vol（默认：256）"])
 commands.append([send, "send", "发送文件至班牌 子命令：view & message & text & sound & image & video"])
+commands.append([cmd, "cmd", "执行终端命令（谨慎使用，没有实现超时自动关闭，可能会出现无响应的情况）"])
 
 config = json.loads("{}")
 
@@ -235,7 +238,7 @@ if run_type == '1':
     while True:
         print("获取消息……")
         try:
-            handle(stu.wait_new_msg().lower())
+            handle(stu.wait_new_msg())
         except Exception as e:
             print(e)
             runtype("服务器内部错误：" + str(e))
@@ -245,7 +248,7 @@ if run_type == '2':
         try:
             command = input("输入命令：")
             runtype("正在执行命令：" + command)
-            handle(command.lower())
+            handle(command)
         except Exception as e:
             runtype("服务器内部错误：" + str(e))
             time.sleep(5)
