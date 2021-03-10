@@ -154,7 +154,7 @@ def music(msg):
 
 def status(msg):
     global stu
-    f=os.popen("neofetch --backend off --color_blocks off --bold off --colors | sed -r 's/\x1B\[\??[0-9]*;?[0-9]?;?[m|l]//g' | sed '$d'")
+    f=os.popen("neofetch --backend off --color_blocks off --bold off --colors | sed -r 's/\x1B\[\??[0-9]*;?[0-9]?;?[m|l|h]//g'")
     res = "服务器信息：" + f.read() + "服务器正在正常运行\n"
     runtype(res)
     res = "Token:" + stu.token + "\n"
